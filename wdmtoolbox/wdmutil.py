@@ -473,15 +473,23 @@ class WDM(object):
 
         try:
             ostr = str(ostr, "utf-8").strip()
-            scen_ostr = str(scen_ostr, "utf-8").strip()
-            con_ostr = str(con_ostr, "utf-8").strip()
-            desc_ostr = str(desc_ostr, "utf-8").strip()
-            tstype = str(tstype, "utf-8").strip()
         except TypeError:
             ostr = ''.join(ostr).strip()
+        try:
+            scen_ostr = str(scen_ostr, "utf-8").strip()
+        except TypeError:
             scen_ostr = ''.join(scen_ostr).strip()
+        try:
+            con_ostr = str(con_ostr, "utf-8").strip()
+        except TypeError:
             con_ostr = ''.join(con_ostr).strip()
+        try:
+            desc_ostr = str(desc_ostr, "utf-8").strip()
+        except TypeError:
             desc_ostr = ''.join(desc_ostr).strip()
+        try:
+            tstype = str(tstype, "utf-8").strip()
+        except TypeError:
             tstype = ''.join(tstype).strip()
 
         return {'dsn':         dsn,
