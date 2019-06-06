@@ -15,6 +15,7 @@ from collections import OrderedDict
 import mando
 from mando.rst_text_formatter import RSTHelpFormatter
 from dateutil.parser import parse as dateparser
+from tqdm import tqdm
 
 # Local imports
 # Load in WDM subroutines
@@ -77,7 +78,7 @@ def copydsn(inwdmpath, indsn, outwdmpath, outdsn, overwrite=False):
 
 @mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
 @tsutils.doc(tsutils.docstrings)
-def cleancopywdm(inwdmpath, outwdmpath, overwrite=False):
+def cleancopywdm(inwdmpath, outwdmpath, overwrite=False, dsns=None):
     """Make a clean copy of a WDM file.
 
     Parameters
@@ -101,7 +102,9 @@ def cleancopywdm(inwdmpath, outwdmpath, overwrite=False):
 """)
     createnewwdm(outwdmpath, overwrite=overwrite)
     activedsn = []
-    for i in range(1, 32000):
+    if not dsns:
+        dsns = range(1, 32000)
+    for i in dsns:
         try:
             activedsn.append(_describedsn(inwdmpath, i)['dsn'])
         except wdmutil.WDMError:
@@ -337,7 +340,7 @@ def describedsn(wdmpath, dsn):
 
 @mando.command(formatter_class=RSTHelpFormatter, doctype='numpy')
 @tsutils.doc(tsutils.docstrings)
-def listdsns(wdmpath):
+def listdsns(wdmpath, max_dsn=32001):
     """Print out a table describing all DSNs in the WDM.
 
     Parameters
@@ -355,7 +358,7 @@ def listdsns(wdmpath):
 """.format(wdmpath))
 
     collect = OrderedDict()
-    for i in range(1, 32001):
+    for i in tqdm(range(1, max_dsn)):
         try:
             testv = _describedsn(wdmpath, i)
         except wdmutil.WDMError:
