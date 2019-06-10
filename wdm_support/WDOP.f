@@ -1,6 +1,41 @@
 C
 C
 C
+    SUBROUTINE Findex(filename)
+C    !Author: Jack Lisin
+C    !Date Developed: 06/10/2019
+C    !Developed for: Geosyntec Consultants
+        IMPLICIT NONE
+        CHARACTER(LEN=*),INTENT(INOUT)::filename
+        CHARACTER(LEN=50)::dummyI
+        LOGICAL::Fcheck
+        INTEGER::n=0, TheSTAT
+        INQUIRE(FILE='commonblock_FI.txt',EXIST=Fcheck)
+        
+        IF(Fcheck) THEN
+            OPEN(UNIT=9999,FILE='commonblock_FI.txt',STATUS='OLD',IOSTAT=TheSTAT)
+            IF(TheSTAT/=0) STOP 'FILE ERROR In COMMONBLOCK_FI'
+            REWIND(9999)
+            READ(9999,*)n
+            n=n+1
+            REWIND(9999)
+            WRITE(9999,*) n
+            CLOSE(9999)
+            WRITE(dummyI,'(I0)') n
+            filename((LEN_TRIM(filename)+1):LEN_TRIM(dummyI)+LEN_TRIM(filename)+1)=TRIM(dummyI)
+        ELSE
+            n=1
+            OPEN(UNIT=9999,FILE='commonblock_FI.txt',STATUS='NEW', IOSTAT=TheSTAT)
+            IF(TheSTAT/=0) STOP 'ERROR in COMMONBLOCK_FI'
+            WRITE(9999,*) n
+            WRITE(dummyI,'(I0)') n
+            filename((LEN_TRIM(filename)+1):LEN_TRIM(dummyI)+LEN_TRIM(filename)+1)=TRIM(dummyI)
+        END IF
+        
+    END SUBROUTINE 
+c
+c
+c
       SUBROUTINE   WDBOPN
      I                    (WDMSFL,WDNAME,RONWFG,
      O                     RETCOD)
@@ -34,6 +69,14 @@ C     + + + SAVES + + +
 C
 C     + + + LOCAL VARIABLES + + +
       INTEGER(4)IOS
+      CHARACTER(LEN=50)::filename
+      INTEGER::TheSTAT
+      INTERFACE
+	      SUBROUTINE Findex(filename)
+		      IMPLICIT NONE
+		      CHARACTER(LEN=*),INTENT(INOUT)::filename
+	      END SUBROUTINE 
+      END INTERFACE
 C
 C     + + + EXTERNALS + + +
       EXTERNAL   WDBFIN, WDFLCK, WDCREA
@@ -51,11 +94,13 @@ C       first time called, determine compiler flag specific
 C       definition of RECL units in OPEN
 C
 C       create a small file and try to write different size strings
-!        OPEN(UNIT=WDMSFL,STATUS='SCRATCH',ACCESS='DIRECT',
-!     1       FORM='UNFORMATTED',RECL=4)
-        open (unit=WDMSFL, file="temporary.wdm01",
-     1    status='REPLACE', form='UNFORMATTED', access='DIRECT', recl=4)
-
+C!        OPEN(UNIT=WDMSFL,STATUS='SCRATCH',ACCESS='DIRECT',
+C!     1       FORM='UNFORMATTED',RECL=4)
+        filename="temporary.wdm"
+        CALL Findex(filename)
+        open (unit=WDMSFL, file=filename, &
+       &  status='REPLACE', form='UNFORMATTED', access='DIRECT', recl=4, IOSTAT=TheSTAT)
+        IF(TheSTAT/=0) STOP 'Error opening index file'
         WRITE(WDMSFL,REC=1,ERR=110) '1234567890123456'
         RECRDL= 512
         GOTO 100
