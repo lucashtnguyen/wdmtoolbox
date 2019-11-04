@@ -1,6 +1,50 @@
-C
-C
-C
+      module mod_concatic
+      contains
+
+      subroutine concatic(n, filename)
+
+            character(len=*),intent(inout)::filename
+            integer, intent(in):: n
+            character(len=len_trim(filename))::dummyc
+
+            write(dummyc,'(a15)')filename
+            write(filename,'(a15,i0)')dummyc, n
+            !write(*,*)filename
+
+      end subroutine 
+
+      end module 
+
+      subroutine file_check(filename)
+      use  mod_concatic
+      implicit none
+      character(len=50),intent(inout)::filename
+      integer::n
+      logical :: file_exists
+      !write(filename,'(a14)')'input_file.csv'
+      
+      inquire(file=filename, exist=file_exists)
+      
+      if(file_exists) then
+            n=1
+            do  
+                write(*,*)'here'
+                call concatic(n,filename)
+                inquire(file=filename, exist=file_exists)
+                if(file_exists) then
+                    n=n+1
+                else
+                    open(unit=1,file=filename,status='new')
+                    exit
+                end if
+            end do
+      else
+           open(unit=1,file=filename,status='new')
+           !write(*,*) filename
+      end if
+      
+      end subroutine
+
       SUBROUTINE   WDBOPN
      I                    (WDMSFL,WDNAME,RONWFG,
      O                     RETCOD)
@@ -55,6 +99,7 @@ C       create a small file and try to write different size strings
 !     1       FORM='UNFORMATTED',RECL=4)
         open (unit=WDMSFL, file="temporary.wdm01",
      1    status='REPLACE', form='UNFORMATTED', access='DIRECT', recl=4)
+        CALL file_check('temporary.wdm01')
 
         WRITE(WDMSFL,REC=1,ERR=110) '1234567890123456'
         RECRDL= 512
