@@ -67,7 +67,6 @@ C     buffer are initialized the first time this routine is called.
           !Jack Lisin, 11/05/2019
           
             subroutine file_check(filename, WDMSFL)
-                use  mod_concatic
                 implicit none
                 integer,intent(in)::WDMSFL
                 character(len=50),intent(inout)::filename
