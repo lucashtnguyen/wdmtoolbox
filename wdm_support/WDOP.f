@@ -1,50 +1,25 @@
-      module mod_concatic
-      contains
-
-      subroutine concatic(n, filename)
-
-            character(len=*),intent(inout)::filename
-            integer, intent(in):: n
-            character(len=len_trim(filename))::dummyc
-
-            write(dummyc,'(a15)')filename
-            write(filename,'(a15,i0)')dummyc, n
-            !write(*,*)filename
-
-      end subroutine 
-
-      end module 
-
-      subroutine file_check(filename)
-      use  mod_concatic
-      implicit none
-      character(len=50),intent(inout)::filename
-      integer::n
-      logical :: file_exists
-      !write(filename,'(a14)')'input_file.csv'
+      subroutine file_check(filename,WDMSFL)
+          implicit none
+          integer,intent(in)::WDMSFL
+          character(len=50),intent(inout)::filename
+          logical :: file_exists
+          character(len=100)::cmd
+          !200 format('del.sh ',a50)
+          !write(filename,'(a14)')'input_file.csv'
+          
+          inquire(file=filename, exist=file_exists)
+          
+          if(file_exists) then
+                write(cmd,'("del.sh ",a50)')filename
+                call system(cmd)
+                open (unit=WDMSFL, file=filename,
+     1    status='REPLACE', form='UNFORMATTED', access='DIRECT', recl=4)
+          else
+                open (unit=WDMSFL, file=filename,
+     1    status='REPLACE', form='UNFORMATTED', access='DIRECT', recl=4)
+          end if
+      end subroutine!!!!!!!!!!!!!!!!!!!!!
       
-      inquire(file=filename, exist=file_exists)
-      
-      if(file_exists) then
-            n=1
-            do  
-                write(*,*)'here'
-                call concatic(n,filename)
-                inquire(file=filename, exist=file_exists)
-                if(file_exists) then
-                    n=n+1
-                else
-                    open(unit=1,file=filename,status='new')
-                    exit
-                end if
-            end do
-      else
-           open(unit=1,file=filename,status='new')
-           !write(*,*) filename
-      end if
-      
-      end subroutine
-
       SUBROUTINE   WDBOPN
      I                    (WDMSFL,WDNAME,RONWFG,
      O                     RETCOD)
@@ -53,6 +28,18 @@ C     + + + PURPOSE + + +
 C     Open a WDM file.  File is opened as new or old, depending on
 C     the value of RONWFG.  The common block related to the WDM record
 C     buffer are initialized the first time this routine is called.
+
+      interface !JL
+          
+            subroutine file_check(filename, WDMSFL)
+                implicit none
+                integer,intent(in)::WDMSFL
+                character(len=50),intent(inout)::filename
+            end subroutine
+                
+      end interface
+      
+      CHARACTER(LEN=50)::filename!JL
 C
 C     + + + DUMMY ARGUMENTS + + +
       INTEGER      WDMSFL,RONWFG,RETCOD
@@ -97,9 +84,9 @@ C
 C       create a small file and try to write different size strings
 !        OPEN(UNIT=WDMSFL,STATUS='SCRATCH',ACCESS='DIRECT',
 !     1       FORM='UNFORMATTED',RECL=4)
-        open (unit=WDMSFL, file="temporary.wdm01",
-     1    status='REPLACE', form='UNFORMATTED', access='DIRECT', recl=4)
-        CALL file_check('temporary.wdm01')
+          filename='temporary.wdm01'
+          call file_check(filename,WDMSFL)
+        
 
         WRITE(WDMSFL,REC=1,ERR=110) '1234567890123456'
         RECRDL= 512
